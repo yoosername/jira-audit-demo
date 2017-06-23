@@ -1,0 +1,15 @@
+**.swp
+.settings/*
+.classpath
+.vagrant/
+.project
+*/.settings/*
+*/.classpath
+*/.project
+*/target/*
+target/*
+*.log
+%PRODUCT_HOME_DIR%
+.sdk/
+.sdk.tar.gz
+versions/*

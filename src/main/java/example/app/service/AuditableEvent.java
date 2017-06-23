@@ -10,13 +10,12 @@ public class AuditableEvent {
 
 
 	private ApplicationUser user;
-	private Long type;
+	private String type;
 	private URI url;
 	private boolean isAdminOnlyAction;
 	private boolean isDestructiveAction;
 	private boolean isAnonimousAction;
 	private Date timestamp;
-	private final EventTypeManager eventTypeManager;
 	private long contentID;
 	
 	@Override
@@ -25,8 +24,8 @@ public class AuditableEvent {
 				"%s, %s, %s, %s, %s, %s, %s", 
 				timestamp,
 				user,
-				eventTypeManager.getEventType(type).getName(),
-				contentID,
+				type,
+				(contentID!=0)?contentID:'-',
 				isAdminOnlyAction,
 				isDestructiveAction,
 				isAnonimousAction
@@ -46,8 +45,8 @@ public class AuditableEvent {
 		this.timestamp = timestamp;
 	}
 
-	public AuditableEvent(EventTypeManager eventTypeManager){
-		this.eventTypeManager = eventTypeManager;
+	public AuditableEvent(){
+		
 	}
 
 	public ApplicationUser getUser() {
@@ -63,16 +62,16 @@ public class AuditableEvent {
 		this.user = user;
 	}
 
-	public Long getType() {
+	public String getType() {
 		return type;
 	}
 
-	public AuditableEvent withType(Long type){
+	public AuditableEvent withType(String type){
 		this.setType(type);
 		return this;
 	}
 
-	public void setType(Long type) {
+	public void setType(String type) {
 		this.type = type;
 	}
 
@@ -133,6 +132,7 @@ public class AuditableEvent {
 	}
 	
 	public void setContentID(Long contentID) {
+		contentID = (contentID == null) ? 0 : contentID;
 		this.contentID = contentID;
 	}
 	

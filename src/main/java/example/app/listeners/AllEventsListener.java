@@ -16,6 +16,9 @@ import com.atlassian.crowd.embedded.api.User;
 import com.atlassian.crowd.event.user.UserAuthenticatedEvent;
 import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
+import com.atlassian.jira.event.ProjectCreatedEvent;
+import com.atlassian.jira.event.ProjectDeletedEvent;
+import com.atlassian.jira.event.ProjectUpdatedEvent;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventTypeManager;
 import com.atlassian.jira.event.user.LoginEvent;
@@ -135,6 +138,54 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
     				.withUser(user)
     				.withType("Logout")
     				.withContentID(null)
+    				.at(timestamp)
+    		);
+    }
+	
+	@EventListener
+    public void projectCreatedEvent(ProjectCreatedEvent event) {
+		
+		ApplicationUser user = event.getUser();
+        Date timestamp = event.getTime();
+        Long id = event.getProject().getId();
+        
+        auditService.pushEvent(
+    			new AuditableEvent()
+    				.withUser(user)
+    				.withType("Project Created")
+    				.withContentID(id)
+    				.at(timestamp)
+    		);
+    }
+	
+	@EventListener
+    public void projectDeletedEvent(ProjectDeletedEvent event) {
+		
+		ApplicationUser user = event.getUser();
+        Date timestamp = event.getTime();
+        Long id = event.getProject().getId();
+        
+        auditService.pushEvent(
+    			new AuditableEvent()
+    				.withUser(user)
+    				.withType("Project Deleted")
+    				.withContentID(id)
+    				.at(timestamp)
+    		);
+    }
+	
+	@EventListener
+    public void projectUpdatedEvent(ProjectUpdatedEvent event) {
+		
+		ApplicationUser user = event.getUser();
+        Date timestamp = event.getTime();
+        Long id = event.getProject().getId();
+        
+        auditService.pushEvent(
+    			new AuditableEvent()
+    				.withUser(user)
+    				.withType("Project Updated")
+    				.withContentID(id)
     				.at(timestamp)
     		);
     }

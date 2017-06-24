@@ -1,9 +1,7 @@
 package example.app.service;
 
-import java.net.URI;
 import java.util.Date;
 
-import com.atlassian.jira.event.type.EventTypeManager;
 import com.atlassian.jira.user.ApplicationUser;
 
 public class AuditableEvent {
@@ -11,24 +9,28 @@ public class AuditableEvent {
 
 	private ApplicationUser user;
 	private String type;
-	private URI url;
+	private String typeDescription;
+	private String url;
 	private boolean isAdminOnlyAction;
 	private boolean isDestructiveAction;
 	private boolean isAnonimousAction;
+	private boolean isContentAffectedAction;
 	private Date timestamp;
 	private long contentID;
 	
 	@Override
 	public String toString() {
 		return String.format(
-				"%s, %s, %s, %s, %s, %s, %s", 
+				"%s, %s, %s, %s, %s, %s, %s, %s, %s", 
 				timestamp,
-				user,
+				(user != null)?user:'-',
+				(url != null && ! url.isEmpty())?url:'-',
 				type,
-				(contentID!=0)?contentID:'-',
-				isAdminOnlyAction,
-				isDestructiveAction,
-				isAnonimousAction
+				(typeDescription != null && !typeDescription.isEmpty())?typeDescription:'-',
+				(isContentAffectedAction)?contentID:'-',
+				(isAdminOnlyAction)?isAdminOnlyAction:'-',
+				(isDestructiveAction)?isDestructiveAction:'-',
+				(isAnonimousAction)?isAnonimousAction:'-'
 		);
 	}
 
@@ -75,16 +77,16 @@ public class AuditableEvent {
 		this.type = type;
 	}
 
-	public URI getUrl() {
+	public String getUrl() {
 		return url;
 	}
 
-	public AuditableEvent withUrl(URI uri){
-		this.setUrl(uri);
+	public AuditableEvent withUrl(String string){
+		this.setUrl(string);
 		return this;
 	}
 
-	public void setUrl(URI url) {
+	public void setUrl(String url) {
 		this.url = url;
 	}
 
@@ -132,12 +134,34 @@ public class AuditableEvent {
 	}
 	
 	public void setContentID(Long contentID) {
-		contentID = (contentID == null) ? 0 : contentID;
 		this.contentID = contentID;
+		this.isContentAffectedAction(true);
 	}
 	
 	public AuditableEvent withContentID(Long id) {
 		this.setContentID(id);
+		return this;
+	}
+
+	public boolean isContentAffectedAction() {
+		return isContentAffectedAction;
+	}
+
+	public AuditableEvent isContentAffectedAction(boolean isContentAffectedAction) {
+		this.isContentAffectedAction = isContentAffectedAction;
+		return this;
+	}
+
+	public String getTypeDescription() {
+		return typeDescription;
+	}
+
+	public void setTypeDescription(String typeDescription) {
+		this.typeDescription = typeDescription;
+	}
+	
+	public AuditableEvent withTypeDescription(String description) {
+		this.setTypeDescription(description);
 		return this;
 	}
 

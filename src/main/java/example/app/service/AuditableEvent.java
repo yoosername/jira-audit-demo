@@ -1,38 +1,23 @@
 package example.app.service;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.atlassian.jira.user.ApplicationUser;
+import org.apache.commons.lang3.text.StrSubstitutor;
 
 public class AuditableEvent {
 
-
-	private ApplicationUser user;
+	private String userId;
 	private String type;
 	private String typeDescription;
 	private String url;
 	private boolean isAdminOnlyAction;
 	private boolean isDestructiveAction;
-	private boolean isAnonimousAction;
+	private boolean isAnonymousAction;
 	private boolean isContentAffectedAction;
 	private Date timestamp;
 	private long contentID;
-	
-	@Override
-	public String toString() {
-		return String.format(
-				"%s, %s, %s, %s, %s, %s, %s, %s, %s", 
-				timestamp,
-				(user != null)?user:'-',
-				(url != null && ! url.isEmpty())?url:'-',
-				type,
-				(typeDescription != null && !typeDescription.isEmpty())?typeDescription:'-',
-				(isContentAffectedAction)?contentID:'-',
-				(isAdminOnlyAction)?isAdminOnlyAction:'-',
-				(isDestructiveAction)?isDestructiveAction:'-',
-				(isAnonimousAction)?isAnonimousAction:'-'
-		);
-	}
 
 	public Date getTimestamp() {
 		return timestamp;
@@ -48,20 +33,20 @@ public class AuditableEvent {
 	}
 
 	public AuditableEvent(){
-		
+
 	}
 
-	public ApplicationUser getUser() {
-		return user;
+	public String getUserId() {
+		return userId;
 	}
 
-	public AuditableEvent withUser(ApplicationUser user){
-		this.setUser(user);
+	public AuditableEvent withUserId(String userId){
+		this.setUserId(userId);
 		return this;
 	}
 
-	public void setUser(ApplicationUser user) {
-		this.user = user;
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
 	public String getType() {
@@ -116,28 +101,28 @@ public class AuditableEvent {
 		this.isDestructiveAction = isDestructiveAction;
 	}
 
-	public boolean isAnonimousAction() {
-		return isAnonimousAction;
+	public boolean isAnonymousAction() {
+		return isAnonymousAction;
 	}
 
-	public AuditableEvent withIsAnonimousAction(boolean isAnonimousAction){
-		this.setAnonimousAction(isAnonimousAction);
+	public AuditableEvent withIsAnonymousAction(boolean isAnonimousAction){
+		this.setAnonymousAction(isAnonymousAction);
 		return this;
 	}
 
-	public void setAnonimousAction(boolean isAnonimousAction) {
-		this.isAnonimousAction = isAnonimousAction;
+	public void setAnonymousAction(boolean isAnonimousAction) {
+		this.isAnonymousAction = isAnonimousAction;
 	}
 
 	public Long getContentID() {
 		return this.contentID;
 	}
-	
+
 	public void setContentID(Long contentID) {
 		this.contentID = contentID;
 		this.isContentAffectedAction(true);
 	}
-	
+
 	public AuditableEvent withContentID(Long id) {
 		this.setContentID(id);
 		return this;
@@ -159,10 +144,36 @@ public class AuditableEvent {
 	public void setTypeDescription(String typeDescription) {
 		this.typeDescription = typeDescription;
 	}
-	
+
 	public AuditableEvent withTypeDescription(String description) {
 		this.setTypeDescription(description);
 		return this;
+	}
+
+	/**
+	 * Format
+	 * Receives {@code String}.
+	 * @param templatee the String passed to us
+	 */
+	public String format(String template){
+
+		Map<String, String> context = new HashMap<String, String>();
+		context.put("userId", this.getUserId());
+		context.put("type", this.getType());
+		context.put("typeDescription", this.getTypeDescription());
+		context.put("url", this.getUrl());
+		context.put("isAdminOnlyAction", String.valueOf(this.isAdminOnlyAction()));
+		context.put("isDestructiveAction", String.valueOf(this.isDestructiveAction()));
+		context.put("isAnonymousAction", String.valueOf(this.isAnonymousAction()));
+		context.put("isContentAffectedAction", String.valueOf(this.isContentAffectedAction()));
+		context.put("timestamp", this.getTimestamp().toString());
+		context.put("contentID", String.valueOf(this.getContentID()));
+		
+		StrSubstitutor sub = new StrSubstitutor(context);
+		String parsedTemplate = sub.replace(template);
+		
+		return parsedTemplate;
+
 	}
 
 

@@ -1,6 +1,5 @@
 package example.app.listeners;
 
-import java.net.URI;
 import java.util.Date;
 
 import javax.annotation.PostConstruct;
@@ -101,10 +100,15 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 
 
 	// https://developer.atlassian.com/jiradev/jira-platform/jira-architecture/jira-technical-overview/jira-specific-atlassian-events
-	// TODO: Add workflow events. = currently issue event with source = workflow
+	// DONE: Add Dashboard view event
+	// DONE: Add login / logout events
+	// DONE: Add Project create / delete / modify events
+	// DONE: Add Issue create / delete / modify events
+	// DONE: Add Export Events
+	// PARTIALLY DONE: Add Issue workflow events. = currently issue event with source = workflow
+	// DONE: Add JQL Search Events
 	// TODO: Add User modification events
-	// TODO: Add JQL Search Events
-	// TODO: Add Import / Export Events
+	
 
 	private String getCurrentUri(){
 		HttpServletRequest req = servletVars.getHttpRequest();
@@ -112,8 +116,14 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	}
 		
 	@EventListener
+	// For testing - show us all the different events when they fire
 	public void onJiraEvent(JiraEvent event) {
 		log.debug("got JIRA event {}", event);
+	}
+	
+	private ApplicationUser getCurrentUser(){
+		JiraAuthenticationContext context = ComponentAccessor.getJiraAuthenticationContext();
+	    return context.getLoggedInUser();
 	}
 
 	
@@ -126,17 +136,15 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 
 		Date timestamp = exportEvent.getTime();
 		String name = exportEvent.calculateEventName();
-		JiraAuthenticationContext context = ComponentAccessor.getJiraAuthenticationContext();
-	    ApplicationUser user = context.getLoggedInUser();
 		
-		auditService.pushEvent(
+		auditService.handleEvent(
 			new AuditableEvent()
 				.withUrl(getCurrentUri())
-				.withUser(user)
+				.withUserId(getCurrentUser().getUsername())
 				.withType(name)
 				.withTypeDescription(exportEvent.getParams().toString())
 				.isContentAffectedAction(false)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
@@ -153,13 +161,14 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 
 		Date timestamp = quickBrowseEvent.getTime();
 		
-		auditService.pushEvent(
+		auditService.handleEvent(
 			new AuditableEvent()
 				.withUrl(getCurrentUri())
+				.withUserId(getCurrentUser().getUsername())
 				.withType("Quick Browse")
 				.withTypeDescription(quickBrowseEvent.getIssueKey())
 				.isContentAffectedAction(false)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
@@ -176,17 +185,14 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 
 		Date timestamp = quickSearchEvent.getTime();
 		
-		JiraAuthenticationContext context = ComponentAccessor.getJiraAuthenticationContext();
-	    ApplicationUser user = context.getLoggedInUser();
-		
-		auditService.pushEvent(
+		auditService.handleEvent(
 			new AuditableEvent()
 				.withUrl(getCurrentUri())
-				.withUser(user)
+				.withUserId(getCurrentUser().getUsername())
 				.withType("Quick Search")
 				.withTypeDescription(quickSearchEvent.getSearchString())
 				.isContentAffectedAction(false)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
@@ -204,13 +210,14 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		String type = issueSearchEvent.getType();
 		Date timestamp = issueSearchEvent.getTime();
 		
-		auditService.pushEvent(
+		auditService.handleEvent(
 			new AuditableEvent()
 				.withUrl(getCurrentUri())
+				.withUserId(getCurrentUser().getUsername())
 				.withType(type)
 				.withTypeDescription(issueSearchEvent.getQuery())
 				.isContentAffectedAction(false)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
@@ -229,13 +236,14 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		EventType type = eventTypeManager.getEventType(eventTypeId);
 		Date timestamp = issueViewEvent.getTime();
 		
-		auditService.pushEvent(
+		auditService.handleEvent(
 			new AuditableEvent()
 				.withUrl(getCurrentUri())
+				.withUserId(getCurrentUser().getUsername())
 				.withType(type.getName())
 				.withTypeDescription(issueViewEvent.getParams().toString())
 				.isContentAffectedAction(false)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
@@ -251,18 +259,16 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	public void onDashboardViewEvent(DashboardViewEvent dashboardViewEvent) {
 
 		String typeName = "Dashboard View";
-		JiraAuthenticationContext context = ComponentAccessor.getJiraAuthenticationContext();
-	    ApplicationUser user = context.getLoggedInUser();
 		Date timestamp = dashboardViewEvent.getTime();
 
-		auditService.pushEvent(
+		auditService.handleEvent(
 			new AuditableEvent()
 				.withUrl(getCurrentUri())
-				.withUser(user)	
+				.withUserId(getCurrentUser().getUsername())	
 				.withType(typeName)
 				.withTypeDescription(dashboardViewEvent.getId().toString())
 				.isContentAffectedAction(false)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
@@ -287,14 +293,14 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 			typeDescription = issueEvent.getParams().get("eventsource").toString();
 		}catch(Exception e){}
 
-		auditService.pushEvent(
+		auditService.handleEvent(
 			new AuditableEvent()
 				.withUrl(getCurrentUri())
-				.withUser(user)
+				.withUserId(user.getUsername())
 				.withType(typeName)
 				.withTypeDescription(typeDescription)
 				.withContentID(issueEvent.getIssue().getId())
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction((typeName.equals("Issue Deleted")?true:false))
 				.at(timestamp)
@@ -313,14 +319,14 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		ApplicationUser user = event.getUser();
 		Date timestamp = event.getTime();
 
-		auditService.pushEvent(
+		auditService.handleEvent(
 				new AuditableEvent()
-				.withUser(user)
+				.withUserId(user.getUsername())
 				.withUrl(getCurrentUri())
 				.withType("Login")
 				.withTypeDescription("login")
 				.isContentAffectedAction(false)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
@@ -339,14 +345,14 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		ApplicationUser user = event.getUser();
 		Date timestamp = event.getTime();
 
-		auditService.pushEvent(
+		auditService.handleEvent(
 				new AuditableEvent()
-				.withUser(user)
+				.withUserId(user.getUsername())
 				.withUrl(getCurrentUri())
 				.withType("Logout")
 				.withTypeDescription("logout")
 				.isContentAffectedAction(false)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
@@ -365,13 +371,13 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		Date timestamp = event.getTime();
 		Long id = event.getProject().getId();        
 
-		auditService.pushEvent(
+		auditService.handleEvent(
 				new AuditableEvent()
-				.withUser(user)
+				.withUserId(user.getUsername())
 				.withUrl(getCurrentUri())
 				.withType("Project Created")
 				.withContentID(id)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
@@ -390,13 +396,13 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		Date timestamp = event.getTime();
 		Long id = event.getProject().getId();
 
-		auditService.pushEvent(
+		auditService.handleEvent(
 				new AuditableEvent()
-				.withUser(user)
+				.withUserId(user.getUsername())
 				.withUrl(getCurrentUri())
 				.withType("Project Deleted")
 				.withContentID(id)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(true)
 				.at(timestamp)
@@ -415,13 +421,13 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		Date timestamp = event.getTime();
 		Long id = event.getProject().getId();
 
-		auditService.pushEvent(
+		auditService.handleEvent(
 				new AuditableEvent()
-				.withUser(user)
+				.withUserId(user.getUsername())
 				.withUrl(getCurrentUri())
 				.withType("Project Updated")
 				.withContentID(id)
-				.withIsAnonimousAction(false)
+				.withIsAnonymousAction(false)
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)

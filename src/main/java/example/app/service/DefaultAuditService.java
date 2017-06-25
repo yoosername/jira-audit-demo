@@ -10,27 +10,29 @@ import com.atlassian.plugin.spring.scanner.annotation.export.ExportAsService;
 @ExportAsService({AuditService.class})
 @Named("AuditService")
 public class DefaultAuditService implements AuditService {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(DefaultAuditService.class);
-	
+
+	private final String CSV_LINE_FORMAT = "${timestamp},${userId},${type},${typeDescription},${url},${isAdminOnlyAction},${isDestructiveAction},${isAnonymousAction},${isContentAffectedAction},${contentID}";
+	private final String JSON_LINE_FORMAT = "{\"timestamp\":${timestamp},\"userId\":${userId},\"type\":${type},\"typeDescription\":${typeDescription},\"url\":${url},\"isAdminOnly\":${isAdminOnlyAction},\"isDestructive\":${isDestructiveAction},\"isAnon\":${isAnonymousAction},\"hasContent\":${isContentAffectedAction},\"contentId\":${contentID}}";
+	private final String XML_LINE_FORMAT = "<event><timestamp>${timestamp}</timestamp><userId>${userId}</userId><type>${type}</type><url>${url}</url></event>";
+
 	public DefaultAuditService(){
-		// Nothing to do right now but examples could be
-		// Configure specific event transformers etc from the admin page
+		// Handle events as they come in.
+		// E.g. log them to a file, POST to a webhook etc.
 	}
 
 	@Override
-	public void pushEvent(AuditableEvent event) {
-		// For now lets just log the event as passed
-		log.info(event.toString());
-		
-		// TODO: Batch up and send to predefined remotes.
-		// E.g. elasticsearch, POST webhook as attached file
-		// Should be able to define the following things
-		// 	Batch size ( i.e. no of events before processing / default to something average like 100 )
-		//  serializer. Which class to use to serialize the event stream
-		//       example custom JSON, XML etc
-		//  webhook address
-		//  Whether data should be added to POST body or as file attachment.
+	public void handleEvent(AuditableEvent event) {
+
+		// Log the event
+		// Optional: Format the event using simple string interpolation
+		log.info(event.format(CSV_LINE_FORMAT));
+		log.info(event.format(JSON_LINE_FORMAT));
+		log.info(event.format(XML_LINE_FORMAT));
+
+		// TODO: ability to POST to webhook in customisable batch sizes and using custom string templates.
+
 	}
-	
+
 }

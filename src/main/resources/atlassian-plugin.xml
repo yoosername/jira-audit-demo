@@ -7,4 +7,13 @@
         <param name="plugin-logo">images/pluginLogo.png</param>
     </plugin-info>
     
+    
+    <servlet-filter name="Audit Filter" key="audit-servlet-filter" class="example.app.filters.AuditFilter" location="before-dispatch" weight="200">
+        <description>Audits various url access</description>
+        <url-pattern>/secure/ProjectIssueNavigatorAction*</url-pattern>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+    </servlet-filter>
+    
 </atlassian-plugin>

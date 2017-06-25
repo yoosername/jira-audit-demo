@@ -13,9 +13,9 @@ public class DefaultAuditService implements AuditService {
 
 	private static final Logger log = LoggerFactory.getLogger(DefaultAuditService.class);
 
-	private final String CSV_LINE_FORMAT = "${timestamp},${userId},${type},${typeDescription},${url},${isAdminOnlyAction},${isDestructiveAction},${isAnonymousAction},${isContentAffectedAction},${contentID}";
-	private final String JSON_LINE_FORMAT = "{\"timestamp\":${timestamp},\"userId\":${userId},\"type\":${type},\"typeDescription\":${typeDescription},\"url\":${url},\"isAdminOnly\":${isAdminOnlyAction},\"isDestructive\":${isDestructiveAction},\"isAnon\":${isAnonymousAction},\"hasContent\":${isContentAffectedAction},\"contentId\":${contentID}}";
-	private final String XML_LINE_FORMAT = "<event><timestamp>${timestamp}</timestamp><userId>${userId}</userId><type>${type}</type><url>${url}</url></event>";
+	private final String CSV_LINE_FORMAT = "${timestamp},${userId},${type},${typeDescription},${referer},${url},${isAdminOnlyAction},${isDestructiveAction},${isAnonymousAction},${isContentAffectedAction},${contentID}";
+	//private final String JSON_LINE_FORMAT = "{\"timestamp\":${timestamp},\"userId\":${userId},\"type\":${type},\"typeDescription\":${typeDescription},\"referer\":${referer},\"url\":${url},\"isAdminOnly\":${isAdminOnlyAction},\"isDestructive\":${isDestructiveAction},\"isAnon\":${isAnonymousAction},\"hasContent\":${isContentAffectedAction},\"contentId\":${contentID}}";
+	//private final String XML_LINE_FORMAT = "<event><timestamp>${timestamp}</timestamp><userId>${userId}</userId><type>${type}</type><referer>${referer}</referer><url>${url}</url></event>";
 
 	public DefaultAuditService(){
 		// Handle events as they come in.
@@ -28,8 +28,8 @@ public class DefaultAuditService implements AuditService {
 		// Log the event
 		// Optional: Format the event using simple string interpolation
 		log.info(event.format(CSV_LINE_FORMAT));
-		log.info(event.format(JSON_LINE_FORMAT));
-		log.info(event.format(XML_LINE_FORMAT));
+		//log.info(event.format(JSON_LINE_FORMAT));
+		//log.info(event.format(XML_LINE_FORMAT));
 
 		// TODO: ability to POST to webhook in customisable batch sizes and using custom string templates.
 

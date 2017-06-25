@@ -22,6 +22,7 @@ import com.atlassian.jira.event.JiraEvent;
 import com.atlassian.jira.event.ProjectCreatedEvent;
 import com.atlassian.jira.event.ProjectDeletedEvent;
 import com.atlassian.jira.event.ProjectUpdatedEvent;
+import com.atlassian.jira.event.issue.MentionIssueCommentEvent;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.issue.IssueSearchEvent;
 import com.atlassian.jira.event.issue.IssueViewEvent;
@@ -104,6 +105,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	// DONE: Add login / logout events
 	// DONE: Add Project create / delete / modify events
 	// DONE: Add Issue create / delete / modify events
+	// DONE: Add Issue View events
 	// DONE: Add Export Events
 	// PARTIALLY DONE: Add Issue workflow events. = currently issue event with source = workflow
 	// DONE: Add JQL Search Events
@@ -113,6 +115,11 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	private String getCurrentUri(){
 		HttpServletRequest req = servletVars.getHttpRequest();
 	    return req.getRequestURI();
+	}
+	
+	private String getCurrentReferer(){
+		HttpServletRequest req = servletVars.getHttpRequest();
+	    return (req.getHeader("referer")!=null)?req.getHeader("referer"):"";
 	}
 		
 	@EventListener
@@ -126,6 +133,31 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	    return context.getLoggedInUser();
 	}
 
+
+	/**
+	 * Receives any {@code MentionIssueCommentEvent}s sent by JIRA.
+	 * @param mentionIssueCommentEvent the MentionIssueCommentEvent passed to us
+	 */
+	@EventListener
+	public void onExportEvent(MentionIssueCommentEvent mentionIssueCommentEvent) {
+
+		Date timestamp = new Date();
+		
+		auditService.handleEvent(
+			new AuditableEvent()
+				.withReferer(getCurrentReferer())
+				.withUrl(getCurrentUri())
+				.withUserId(mentionIssueCommentEvent.getFromUser().getUsername())
+				.withType("User Mention")
+				.withTypeDescription("from:"+mentionIssueCommentEvent.getFromUser()+",to:"+mentionIssueCommentEvent.getToUsers()+",msg:"+mentionIssueCommentEvent.getMentionText())
+				.isContentAffectedAction(true)
+				.withIsAnonymousAction(false)
+				.withIsAdminOnly(false)
+				.withIsDestructiveAction(false)
+				.at(timestamp)
+		);
+
+	}
 	
 	/**
 	 * Receives any {@code ExportEvent}s sent by JIRA.
@@ -139,6 +171,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		
 		auditService.handleEvent(
 			new AuditableEvent()
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUser().getUsername())
 				.withType(name)
@@ -163,6 +196,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		
 		auditService.handleEvent(
 			new AuditableEvent()
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUser().getUsername())
 				.withType("Quick Browse")
@@ -187,6 +221,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		
 		auditService.handleEvent(
 			new AuditableEvent()
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUser().getUsername())
 				.withType("Quick Search")
@@ -212,6 +247,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		
 		auditService.handleEvent(
 			new AuditableEvent()
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUser().getUsername())
 				.withType(type)
@@ -238,6 +274,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		
 		auditService.handleEvent(
 			new AuditableEvent()
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUser().getUsername())
 				.withType(type.getName())
@@ -263,6 +300,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 
 		auditService.handleEvent(
 			new AuditableEvent()
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUser().getUsername())	
 				.withType(typeName)
@@ -295,6 +333,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 
 		auditService.handleEvent(
 			new AuditableEvent()
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(user.getUsername())
 				.withType(typeName)
@@ -322,6 +361,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		auditService.handleEvent(
 				new AuditableEvent()
 				.withUserId(user.getUsername())
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withType("Login")
 				.withTypeDescription("login")
@@ -348,6 +388,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		auditService.handleEvent(
 				new AuditableEvent()
 				.withUserId(user.getUsername())
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withType("Logout")
 				.withTypeDescription("logout")
@@ -374,6 +415,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		auditService.handleEvent(
 				new AuditableEvent()
 				.withUserId(user.getUsername())
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withType("Project Created")
 				.withContentID(id)
@@ -399,6 +441,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		auditService.handleEvent(
 				new AuditableEvent()
 				.withUserId(user.getUsername())
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withType("Project Deleted")
 				.withContentID(id)
@@ -424,6 +467,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		auditService.handleEvent(
 				new AuditableEvent()
 				.withUserId(user.getUsername())
+				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withType("Project Updated")
 				.withContentID(id)

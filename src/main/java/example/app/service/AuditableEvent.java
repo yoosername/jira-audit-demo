@@ -11,6 +11,7 @@ public class AuditableEvent {
 	private String userId;
 	private String type;
 	private String typeDescription;
+	private String referer;
 	private String url;
 	private boolean isAdminOnlyAction;
 	private boolean isDestructiveAction;
@@ -149,6 +150,19 @@ public class AuditableEvent {
 		this.setTypeDescription(description);
 		return this;
 	}
+	
+	public String getReferer() {
+		return referer;
+	}
+
+	public void setReferer(String referer) {
+		this.referer = referer;
+	}
+	
+	public AuditableEvent withReferer(String referer) {
+		this.setReferer(referer);
+		return this;
+	}
 
 	/**
 	 * Format
@@ -158,10 +172,11 @@ public class AuditableEvent {
 	public String format(String template){
 
 		Map<String, String> context = new HashMap<String, String>();
-		context.put("userId", this.getUserId());
-		context.put("type", this.getType());
-		context.put("typeDescription", this.getTypeDescription());
-		context.put("url", this.getUrl());
+		context.put("userId", String.valueOf(this.getUserId()));
+		context.put("type", String.valueOf(this.getType()));
+		context.put("typeDescription", String.valueOf(this.getTypeDescription()));
+		context.put("referer", String.valueOf(this.getReferer()));
+		context.put("url", String.valueOf(this.getUrl()));
 		context.put("isAdminOnlyAction", String.valueOf(this.isAdminOnlyAction()));
 		context.put("isDestructiveAction", String.valueOf(this.isDestructiveAction()));
 		context.put("isAnonymousAction", String.valueOf(this.isAnonymousAction()));

@@ -17,15 +17,30 @@
 	<description>Provides demo auditing capabilities</description>
 	<packaging>atlassian-plugin</packaging>
 
+	<properties>
+		<ao.version>1.2.2</ao.version>
+		<amps.version>6.2.11</amps.version>
+		<testkit.version>7.2.21</testkit.version>
+		<jira.version>7.3.0</jira.version>
+		<jira.data.version>7.3.0</jira.data.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<selenium.server.location>localhost</selenium.server.location>
+		<selenium.server.port>4444</selenium.server.port>
+		<atlassian.spring.scanner.version>2.1.3</atlassian.spring.scanner.version>
+		<atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
+		<spring.version>4.3.9.RELEASE</spring.version>
+	</properties>
+
 	<dependencies>
 
+		<!-- For JSR @Named Annotation -->
 		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.8.1</version>
-			<scope>provided</scope>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+			<version>1</version>
 		</dependency>
 
+		<!-- For Servlet Filter -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
@@ -33,59 +48,98 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- For JIRA and Crowd Components -->
 		<dependency>
 			<groupId>com.atlassian.jira</groupId>
 			<artifactId>jira-api</artifactId>
 			<version>${jira.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.jira</groupId>
+			<artifactId>jira-rest-api</artifactId>
+			<version>${jira.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.crowd</groupId>
+			<artifactId>crowd-events</artifactId>
+			<version>2.8.1</version>
 			<scope>provided</scope>
 		</dependency>
-		<!-- Add dependency on jira-core if you want access to JIRA implementation 
-			classes as well as the sanctioned API. -->
-		<!-- This is not normally recommended, but may be required eg when migrating 
-			a plugin originally developed against JIRA 4.x -->
-		<!-- <dependency> <groupId>com.atlassian.jira</groupId> <artifactId>jira-core</artifactId> 
-			<version>${jira.version}</version> <scope>provided</scope> </dependency> -->
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.10</version>
-			<scope>test</scope>
-		</dependency>
-
+		<!-- For Atlassian Spring wiring ( to build OSGI plugin ) -->
 		<dependency>
 			<groupId>com.atlassian.plugin</groupId>
 			<artifactId>atlassian-spring-scanner-annotation</artifactId>
 			<version>${atlassian.spring.scanner.version}</version>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>com.atlassian.plugin</groupId>
 			<artifactId>atlassian-spring-scanner-runtime</artifactId>
 			<version>${atlassian.spring.scanner.version}</version>
 			<scope>provided</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${spring.version}</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>4.3.9.RELEASE</version>
+			<version>${spring.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${spring.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- For Unit and Functional Testing -->
 		<dependency>
-			<groupId>javax.inject</groupId>
-			<artifactId>javax.inject</artifactId>
-			<version>1</version>
-			<scope>provided</scope>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.6</version>
+			<scope>test</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>com.atlassian.crowd</groupId>
-			<artifactId>crowd-events</artifactId>
-			<version>2.8.1</version>
-			<scope>provided</scope>
+			<groupId>com.atlassian.jira</groupId>
+			<artifactId>atlassian-jira-pageobjects</artifactId>
+			<version>${jira.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+           <groupId>com.atlassian.selenium</groupId>
+           <artifactId>atlassian-webdriver-jira</artifactId>
+           <version>2.0</version>
+           <scope>test</scope>
+        </dependency>
+		<dependency>
+			<groupId>com.atlassian.jira</groupId>
+			<artifactId>jira-webdriver-tests</artifactId>
+			<version>${jira.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.jira</groupId>
+			<artifactId>jira-func-tests</artifactId>
+			<version>${jira.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.jira</groupId>
+			<artifactId>jira-tests-lic</artifactId>
+			<version>${jira.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.jira.tests</groupId>
+			<artifactId>jira-testkit-client</artifactId>
+			<version>${testkit.version}</version>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
@@ -111,11 +165,16 @@
 					<productVersion>${jira.version}</productVersion>
 					<productDataVersion>${jira.version}</productDataVersion>
 					<!-- Uncomment to install TestKit backdoor in JIRA. -->
-					<!-- <pluginArtifacts> <pluginArtifact> <groupId>com.atlassian.jira.tests</groupId> 
-						<artifactId>jira-testkit-plugin</artifactId> <version>${testkit.version}</version> 
-						</pluginArtifact> </pluginArtifacts> -->
+					<pluginArtifacts>
+						<pluginArtifact>
+							<groupId>com.atlassian.jira.tests</groupId>
+							<artifactId>jira-testkit-plugin</artifactId>
+							<version>${testkit.version}</version>
+						</pluginArtifact>
+					</pluginArtifacts>
 					<enableQuickReload>true</enableQuickReload>
 					<enableFastdev>false</enableFastdev>
+					<skipRestDocGeneration>true</skipRestDocGeneration>
 
 					<!-- See here for an explanation of default instructions: -->
 					<!-- https://developer.atlassian.com/docs/advanced-topics/configuration-of-instructions-in-atlassian-plugins -->
@@ -130,9 +189,6 @@
 						<!-- Add package import here -->
 						<Import-Package>
 							org.springframework.beans.factory.*;resolution:="optional",
-							com.google.gson.*;resolution:="optional",
-							com.sun.msv.*;resolution:="optional",
-							org.relaxng.*;resolution:="optional",
 							*
 						</Import-Package>
 
@@ -166,57 +222,40 @@
 					<verbose>true</verbose>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- don't run tests in default phase, hold off until integration-test phase -->
+					<skip>true</skip>
+					<systemPropertyVariables combine.children="append">
+						<selenium.location>${selenium.server.location}</selenium.location>
+						<selenium.port>${selenium.server.port}</selenium.port>
+						<!-- 
+							<selenium.browser>${selenium.browser}</selenium.browser> 
+							<selenium.max.wait.time>${selenium.max.wait.time}</selenium.max.wait.time> 
+							<selenium.max.action.wait.time>${selenium.max.action.wait.time}</selenium.max.action.wait.time> 
+							<selenium.max.editor.wait.time>${selenium.max.editor.wait.time}</selenium.max.editor.wait.time> 
+							<selenium.max.comment.editor.wait.time>${selenium.max.comment.editor.wait.time}</selenium.max.comment.editor.wait.time> 
+						-->
+					</systemPropertyVariables>
+				</configuration>
+				<executions>
+					<execution>
+						<id>run-selenium_tests</id>
+						<phase>integration-test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<skip>false</skip>
+							<browser />
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
-		<pluginManagement>
-			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
-					only. It has no influence on the Maven build itself. -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											com.atlassian.maven.plugins
-										</groupId>
-										<artifactId>
-											maven-jira-plugin
-										</artifactId>
-										<versionRange>
-											[6.2.11,)
-										</versionRange>
-										<goals>
-											<goal>
-												filter-plugin-descriptor
-											</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
 
-	<properties>
-		<jira.version>7.2.2</jira.version>
-		<amps.version>6.2.11</amps.version>
-		<plugin.testrunner.version>1.2.3</plugin.testrunner.version>
-		<atlassian.spring.scanner.version>2.1.3</atlassian.spring.scanner.version>
-		<!-- This key is used to keep the consistency between the key in atlassian-plugin.xml 
-			and the key to generate bundle. -->
-		<atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
-		<!-- TestKit version 6.x for JIRA 6.x -->
-		<testkit.version>6.3.11</testkit.version>
-	</properties>
+	</build>
 
 </project>

@@ -131,25 +131,25 @@ public class AuditFilter implements Filter {
 
 			// Example: /jira/issues/?jql=text%20~%20"search%20text"
 			//log.debug(uri + "?" + queryString + " - " + params.get("issueKey")[0].toString());
-			boolean isIssueSearchUrl = uri.contains("issues");
-			if( isIssueSearchUrl ){
-
-				String jql = params.get("jql")[0].toString();
-				int issueCount = getNumberOfIssuesForJQLQuery(getCurrentUser(), jql);
-
-				auditService.handleEvent(
-						new AuditableEvent()
-						.withUserId(getCurrentUser().getUsername())
-						.withUrl(uri)
-						.withType("JQL Search")
-						.withTypeDescription(jql + " (" + issueCount + ")" )
-						.isContentAffectedAction(false)
-						.withIsAnonymousAction(false)
-						.withIsAdminOnly(false)
-						.withIsDestructiveAction(false)
-						.at(new Date())
-						);
-			}
+//			boolean isIssueSearchUrl = uri.contains("issues");
+//			if( isIssueSearchUrl ){
+//
+//				String jql = params.get("jql")[0].toString();
+//				int issueCount = getNumberOfIssuesForJQLQuery(getCurrentUser(), jql);
+//
+//				auditService.handleEvent(
+//						new AuditableEvent()
+//						.withUserId(getCurrentUser().getUsername())
+//						.withUrl(uri)
+//						.withType("JQL Search")
+//						.withTypeDescription(jql + " (" + issueCount + ")" )
+//						.isContentAffectedAction(false)
+//						.withIsAnonymousAction(false)
+//						.withIsAdminOnly(false)
+//						.withIsDestructiveAction(false)
+//						.at(new Date())
+//						);
+//			}
 
 
 		}

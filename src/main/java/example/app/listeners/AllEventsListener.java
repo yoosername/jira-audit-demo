@@ -128,9 +128,11 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		log.debug("got JIRA event {}", event);
 	}
 	
-	private ApplicationUser getCurrentUser(){
+	private String getCurrentUserId(){
 		JiraAuthenticationContext context = ComponentAccessor.getJiraAuthenticationContext();
-	    return context.getLoggedInUser();
+		ApplicationUser user = context.getLoggedInUser();
+		String userId = (user != null) ? user.getUsername() : "unknown";
+	    return userId;
 	}
 
 
@@ -173,7 +175,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 			new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
-				.withUserId(getCurrentUser().getUsername())
+				.withUserId(getCurrentUserId())
 				.withType(name)
 				.withTypeDescription(exportEvent.getParams().toString())
 				.isContentAffectedAction(false)
@@ -198,7 +200,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 			new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
-				.withUserId(getCurrentUser().getUsername())
+				.withUserId(getCurrentUserId())
 				.withType("Quick Browse")
 				.withTypeDescription(quickBrowseEvent.getIssueKey())
 				.isContentAffectedAction(false)
@@ -223,7 +225,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 			new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
-				.withUserId(getCurrentUser().getUsername())
+				.withUserId(getCurrentUserId())
 				.withType("Quick Search")
 				.withTypeDescription(quickSearchEvent.getSearchString())
 				.isContentAffectedAction(false)
@@ -249,7 +251,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 			new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
-				.withUserId(getCurrentUser().getUsername())
+				.withUserId(getCurrentUserId())
 				.withType(type)
 				.withTypeDescription(issueSearchEvent.getQuery())
 				.isContentAffectedAction(false)
@@ -276,7 +278,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 			new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
-				.withUserId(getCurrentUser().getUsername())
+				.withUserId(getCurrentUserId())
 				.withType(type.getName())
 				.withTypeDescription(issueViewEvent.getParams().toString())
 				.isContentAffectedAction(false)
@@ -302,7 +304,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 			new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
-				.withUserId(getCurrentUser().getUsername())	
+				.withUserId(getCurrentUserId())	
 				.withType(typeName)
 				.withTypeDescription(dashboardViewEvent.getId().toString())
 				.isContentAffectedAction(false)

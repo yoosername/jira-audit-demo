@@ -21,10 +21,10 @@ public class AllEventsListenerTests extends AuditBaseTest {
 		// Normal login doesnt seem to cause event via functest so use testkit as means of login event
 		backdoor.analytics().acknowledgePolicy();
 
-		// Assert that Dashboard View audit entry was trapped
+		// Assert that Login audit entry was trapped
 		assertTrue(auditLog.getLastLogEntry().contains("Login"));
 
-		// and was created by the audituser test user
+		// and was created by the admin user
 		assertTrue(auditLog.getLastLogEntry().contains("admin"));
 
 	}

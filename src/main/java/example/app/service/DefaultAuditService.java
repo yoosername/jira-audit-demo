@@ -1,9 +1,11 @@
 package example.app.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Named;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import com.atlassian.plugin.spring.scanner.annotation.export.ExportAsService;
 
@@ -11,28 +13,54 @@ import com.atlassian.plugin.spring.scanner.annotation.export.ExportAsService;
 @Named("AuditService")
 public class DefaultAuditService implements AuditService {
 
-	private static final Logger log = LoggerFactory.getLogger(DefaultAuditService.class);
+	private final Logger log = Logger.getLogger(DefaultAuditService.class);
+	private List<AuditableEvent> events;
 
-	private final String CSV_LINE_FORMAT = "${timestamp},${userId},${type},${typeDescription},${referer},${url},${isAdminOnlyAction},${isDestructiveAction},${isAnonymousAction},${isContentAffectedAction},${contentID}";
-	//private final String JSON_LINE_FORMAT = "{\"timestamp\":${timestamp},\"userId\":${userId},\"type\":${type},\"typeDescription\":${typeDescription},\"referer\":${referer},\"url\":${url},\"isAdminOnly\":${isAdminOnlyAction},\"isDestructive\":${isDestructiveAction},\"isAnon\":${isAnonymousAction},\"hasContent\":${isContentAffectedAction},\"contentId\":${contentID}}";
-	//private final String XML_LINE_FORMAT = "<event><timestamp>${timestamp}</timestamp><userId>${userId}</userId><type>${type}</type><referer>${referer}</referer><url>${url}</url></event>";
+	public final static String CSV_LINE_FORMAT = "${timestamp},${userId},${type},${typeDescription},${referer},${url},${isAdminOnlyAction},${isDestructiveAction},${isAnonymousAction},${isContentAffectedAction},${contentID}";
+	public final static String JSON_LINE_FORMAT = "{\"timestamp\":${timestamp},\"userId\":${userId},\"type\":${type},\"typeDescription\":${typeDescription},\"referer\":${referer},\"url\":${url},\"isAdminOnly\":${isAdminOnlyAction},\"isDestructive\":${isDestructiveAction},\"isAnon\":${isAnonymousAction},\"hasContent\":${isContentAffectedAction},\"contentId\":${contentID}}";
+	public final static String XML_LINE_FORMAT = "<event><timestamp>${timestamp}</timestamp><userId>${userId}</userId><type>${type}</type><referer>${referer}</referer><url>${url}</url></event>";
 
 	public DefaultAuditService(){
 		// Handle events as they come in.
-		// E.g. log them to a file, POST to a webhook etc.
+		events = new ArrayList<AuditableEvent>();
 	}
 
 	@Override
 	public void handleEvent(AuditableEvent event) {
 
+		// Store the event
+		events.add(event);
+
 		// Log the event
-		// Optional: Format the event using simple string interpolation
-		log.info(event.format(CSV_LINE_FORMAT));
-		//log.info(event.format(JSON_LINE_FORMAT));
-		//log.info(event.format(XML_LINE_FORMAT));
+		logEvent(formatEvent(event, CSV_LINE_FORMAT));
 
-		// TODO: ability to POST to webhook in customisable batch sizes and using custom string templates.
+		// TODO: POST to webhook ( batch / template )
 
+	}
+
+	@Override
+	public String formatEvent(AuditableEvent event, String format){
+		return event.format(format);
+	}
+
+	@Override
+	public void logEvent(String event){
+		log.info(event);
+	}
+
+	@Override
+	public List<AuditableEvent> getEvents(){
+		return this.events;
+	}
+
+	@Override
+	public void flushEvents() {
+		this.events = new ArrayList<AuditableEvent>();
+	}
+
+	@Override
+	public AuditableEvent getLastEvent() {
+		return this.events.get(events.size());
 	}
 
 }

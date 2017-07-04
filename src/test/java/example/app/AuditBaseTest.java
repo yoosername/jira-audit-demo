@@ -5,28 +5,27 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
+import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.atlassian.jira.pageobjects.JiraTestedProduct;
-import com.atlassian.jira.pageobjects.pages.JiraLoginPage;
 import com.atlassian.jira.testkit.client.Backdoor;
 import com.atlassian.jira.testkit.client.model.FeatureFlag;
 import com.atlassian.jira.testkit.client.util.TestKitLocalEnvironmentData;
 import com.atlassian.jira.testkit.client.util.TimeBombLicence;
 import com.atlassian.jira.webtest.webdriver.selenium.PageContainsCondition;
 import com.atlassian.pageobjects.TestedProductFactory;
-import com.atlassian.webdriver.jira.page.DashboardPage;
 import com.atlassian.webdriver.utils.element.ElementIsVisible;
+import com.atlassian.webdriver.utils.element.ElementNotVisible;
 
 public abstract class AuditBaseTest {
 
+	private Logger logger = Logger.getLogger(AuditBaseTest.class);
+	
 	protected JiraTestedProduct jira;
 	protected Backdoor backdoor;
 
@@ -47,9 +46,12 @@ public abstract class AuditBaseTest {
 
 		// TestedProductFactory creates Page Object for JIRA that we use to control the behaviour in tests
 		jira = TestedProductFactory.create(JiraTestedProduct.class);
+		
+		logger.debug("jira is : " +  jira);
 
 		// Backdoor uses the Rest API to drive a JIRA Application instance
 		backdoor = new Backdoor(new TestKitLocalEnvironmentData());
+		logger.debug("backdoor is : " +  jira);
 
 		// Start blank instance
 		backdoor.restoreBlankInstance(TimeBombLicence.LICENCE_FOR_TESTING);
@@ -90,68 +92,37 @@ public abstract class AuditBaseTest {
 		// Stop tailing the log;
 		auditLog.stopTailing();
 
-		// Delete cookies and logout.
+		// Delete cookies and logout
 		logout();
 
 		// Flush tested events
 		auditLog.emptyFileAndResetLog();
 
 	}
-
+	
+	/** 
+	 * Utilities
+	 * **/
 	protected void login(){
 		// Login to JIRA and Go Home
-		JiraLoginPage loginPage = jira.gotoLoginPage();
-		loginPage.login(AUDIT_TEST_USER, AUDIT_TEST_PASSWORD,DashboardPage.class);
+		gotoUrl("/login.jsp");
+		waitSetFormElement(By.id("login-form-username"),AUDIT_TEST_USER);
+		waitSetFormElement(By.id("login-form-password"),AUDIT_TEST_PASSWORD);
+		waitAndClick(By.id("login-form-submit"));
 	}
 
 	protected void logout(){
-		jira.logout();
+		
+		// Logout of JIRA via logout & confirm page
+		gotoUrl("/secure/Logout!default.jspa");
+		
+		if(!pageSourceContains("You have already been logged out")){
+			waitAndClick(By.id("confirm-logout-submit"));
+		}
+		
 		jira.getTester().getDriver().manage().deleteAllCookies();
 	}
-
-	protected boolean containsValidDate(String lastLogEntry) {
-
-		if( lastLogEntry == null || lastLogEntry.isEmpty() ){
-			return false;
-		}
-
-		if( lastLogEntry.contains(",") ){
-
-			String[] parts = lastLogEntry.split(",");
-			for (String s: parts) {           
-				if( isValidDate(s) ){
-					return true;
-				}
-			}
-
-		}else{
-
-			if( isValidDate(lastLogEntry) ){
-				return true;
-			}
-
-		}
-
-		return false;
-
-	}
-
-	protected boolean isValidDate(String string) {
-
-		try {
-
-			//if not valid, it will throw ParseException
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
-			simpleDateFormat.setLenient(false);
-			Date date = simpleDateFormat.parse(string);
-			return true;
-
-		} catch (ParseException e) {
-
-			return false;
-		}
-
-	}
+	
 
 	protected void assertTextNotPresent(String toFind) {
 		assertFalse(pageSourceContains(toFind));
@@ -170,6 +141,10 @@ public abstract class AuditBaseTest {
 
 	protected void waitForElement(By identifier) {
 		new WebDriverWait(jira.getTester().getDriver(), 60).until(new ElementIsVisible(identifier, null));
+	}
+	
+	protected void waitForElementToDisappear(By identifier) {
+		new WebDriverWait(jira.getTester().getDriver(), 60).until(new ElementNotVisible(identifier, null));
 	}
 
 

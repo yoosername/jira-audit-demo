@@ -33,7 +33,7 @@ public class AuditLogTester{
 		listener = new AuditTailerListener();
 		tailer = Tailer.create(log, listener, 0);
 		
-		logger.debug("Contents of log are: \"" + getLastLogEntry() + "\"");
+		logAllEntries();
 	}
 
 	public void emptyFileAndResetLog(){
@@ -47,10 +47,14 @@ public class AuditLogTester{
 			FileWriter fileOut = new FileWriter(log);
 			fileOut.write("");
 			fileOut.close();
-		} catch (IOException e) {}
+		} catch (IOException e) {
+			logger.debug("Error emptying log file: " + e.getMessage());
+		}
 
 		// Empty the stored log entries
 		entries.clear();
+		logger.debug("Log file was emptied and log reset");
+		logAllEntries();
 	}
 
 	public void startTailing(){
@@ -60,6 +64,7 @@ public class AuditLogTester{
 			}).start();
 		}
 		tailing = true;
+		logger.debug("Log tailing started");
 	}
 
 	public void stopTailing(){
@@ -69,15 +74,37 @@ public class AuditLogTester{
 			}).start();
 		}
 		tailing = false;
+		logger.debug("Log tailing stopped");
 	}
 
+	public String getLogEntry(int at){
+		String log = "";
+		int actualEntryPosition = Math.min(at, entries.size()-1);
+		log = entries.get(actualEntryPosition);
+		logger.debug("Log at ("+at+") contains: " + log);	
+		return log;
+	}
+	
 	public String getLastLogEntry(){
+		return getLastLogEntry(0);
+	}
+	
+	public String getLastLogEntry(int increment){
 		String log = "";
 		if(entries.size() > 0 ){
-			log = entries.get(entries.size()-1);
+			int lastEntryPosition = entries.size() -1; // will be zero or more here
+			int lastEntryMinusIncrement = lastEntryPosition - increment; // take off the additional increment
+			int actualEntryPosition = Math.max(lastEntryMinusIncrement, 0); // make sure its minimum of zero
+			log = entries.get(actualEntryPosition);
 		}
-		logger.debug("Log currently contains: " + log);	
+		logger.debug("Last log entry currently contains: " + log);	
 		return log;
+	}
+	
+	public void logAllEntries(){
+		for(int n=0; n < entries.size(); n++){
+			logger.debug("log entry at ("+n+") currently contains: " + entries.get(n));
+		}
 	}
 
 	class AuditTailerListener extends TailerListenerAdapter{

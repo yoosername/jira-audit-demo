@@ -8,33 +8,20 @@ import org.openqa.selenium.By;
 import com.atlassian.jira.functest.framework.suite.Category;
 import com.atlassian.jira.functest.framework.suite.WebTest;
 
-
 @WebTest(value = { Category.WEBDRIVER_TEST, Category.DASHBOARDS, Category.PROJECTS, Category.PLUGINS })
-public class AllEventsListenerTests extends AuditBaseTest {
+public class DashboardViewTest extends AuditBaseTest {
 
-	@Test
-	public void testLoginCausesAuditEvent() {
 
-		// Assert that Audit log is empty at the start of this test
-		assertTrue(auditLog.getLastLogEntry().equals(""));
-
-		// Normal login doesnt seem to cause event via functest so use testkit as means of login event
-		backdoor.analytics().acknowledgePolicy();
-
-		// Assert that Login audit entry was trapped
-		assertTrue(auditLog.getLastLogEntry().contains("Login"));
-
-		// and was created by the admin user
-		assertTrue(auditLog.getLastLogEntry().contains("admin"));
-
-	}
-
+	/**
+	 * Checks that viewing a Dashboard triggers an audit event
+	 */
 	@Test
 	public void testDashboardViewCausesAuditEvent() {
 
 		// Assert that Audit log is empty at the start of this test
 		assertTrue(auditLog.getLastLogEntry().equals(""));
-
+		
+		// Login
 		login();
 
 		// Goto Dashboard

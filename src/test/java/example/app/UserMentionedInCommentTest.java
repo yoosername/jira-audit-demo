@@ -9,7 +9,6 @@ import org.openqa.selenium.Keys;
 import com.atlassian.jira.functest.framework.suite.Category;
 import com.atlassian.jira.functest.framework.suite.WebTest;
 import com.atlassian.jira.rest.api.issue.IssueCreateResponse;
-import com.atlassian.jira.webtest.webdriver.tests.mention.TestIssueNewCommentUserMentions;
 
 @WebTest(value = { Category.WEBDRIVER_TEST, Category.DASHBOARDS, Category.PROJECTS, Category.PLUGINS })
 public class UserMentionedInCommentTest extends AuditBaseTest {
@@ -30,17 +29,6 @@ public class UserMentionedInCommentTest extends AuditBaseTest {
 		// Create a new Issue
 		IssueCreateResponse response = jira.backdoor().issues().createIssue("HSP", "Test Issue");
 		backdoor.issues().commentIssue(response.key(), "test comment with message for [~admin]");
-		//gotoUrl("/browse/" + response.key());
-
-		// Add a comment mentioning the admin user in the new issue
-		//waitAndClick(By.id("footer-comment-button"));
-		//waitSetFormElement(By.id("comment"),"test comment with message for [~admin]");
-		// TODO: Possible problem with javascript not firing as event works when done manually
-		//jira.getTester().getDriver().findElement(By.id("comment")).sendKeys("test comment with message for [~admin]");
-		//typeWithFullKeyEvents("comment","test comment with message for [~admin]");
-		//typeUsernameAndSelectFromPicker("comment","[~admin]");
-		//waitAndClick(By.id("issue-comment-add-submit"));
-		//waitForElement(By.id("footer-comment-button"));
 
 		auditLog.logAllEntries();
 

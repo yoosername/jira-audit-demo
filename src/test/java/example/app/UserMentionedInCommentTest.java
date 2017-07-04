@@ -9,6 +9,7 @@ import org.openqa.selenium.Keys;
 import com.atlassian.jira.functest.framework.suite.Category;
 import com.atlassian.jira.functest.framework.suite.WebTest;
 import com.atlassian.jira.rest.api.issue.IssueCreateResponse;
+import com.atlassian.jira.webtest.webdriver.tests.mention.TestIssueNewCommentUserMentions;
 
 @WebTest(value = { Category.WEBDRIVER_TEST, Category.DASHBOARDS, Category.PROJECTS, Category.PLUGINS })
 public class UserMentionedInCommentTest extends AuditBaseTest {
@@ -21,35 +22,36 @@ public class UserMentionedInCommentTest extends AuditBaseTest {
 	public void testUserMentionedInCommentCausesAuditEvent() {
 
 		// Assert that Audit log is empty at the start of this test
-//		assertTrue(auditLog.getLastLogEntry().equals(""));
-//
-//		// Login
-//		login();
-//
-//		// Create a new Issue
-//		IssueCreateResponse response = jira.backdoor().issues().createIssue("HSP", "Test Issue");
-//		gotoUrl("/browse/" + response.key());
-//
-//		// Add a comment mentioning the admin user in the new issue
-//		waitAndClick(By.id("footer-comment-button"));
-//		//waitSetFormElement(By.id("comment"),"test comment with message for [~admin]");
-//		// TODO: Possible problem with javascript not firing as event works when done manually
-//		//jira.getTester().getDriver().findElement(By.id("comment")).sendKeys("test comment with message for [~admin]");
-//		typeWithFullKeyEvents("comment","test comment with message for ");
-//		typeUsernameAndSelectFromPicker("comment","@admin");
-//		waitAndClick(By.id("issue-comment-add-submit"));
-//		waitForElement(By.id("footer-comment-button"));
-//
-//		auditLog.logAllEntries();
-//
-//		// Check the log contains a User Mention
-//		assertTrue(auditLog.getLastLogEntry(1).contains("User Mention"));
-//
-//		// Check the log contains the from and to users
-//		assertTrue(auditLog.getLastLogEntry(1).contains("from:audituser(audituser),to:[admin(admin)"));
-//
-//		// Check the log contains the message itself
-//		assertTrue(auditLog.getLastLogEntry(1).contains("msg:test comment with message for [~admin]"));
+		assertTrue(auditLog.getLastLogEntry().equals(""));
+
+		// Login
+		login();
+
+		// Create a new Issue
+		IssueCreateResponse response = jira.backdoor().issues().createIssue("HSP", "Test Issue");
+		backdoor.issues().commentIssue(response.key(), "test comment with message for [~admin]");
+		//gotoUrl("/browse/" + response.key());
+
+		// Add a comment mentioning the admin user in the new issue
+		//waitAndClick(By.id("footer-comment-button"));
+		//waitSetFormElement(By.id("comment"),"test comment with message for [~admin]");
+		// TODO: Possible problem with javascript not firing as event works when done manually
+		//jira.getTester().getDriver().findElement(By.id("comment")).sendKeys("test comment with message for [~admin]");
+		//typeWithFullKeyEvents("comment","test comment with message for [~admin]");
+		//typeUsernameAndSelectFromPicker("comment","[~admin]");
+		//waitAndClick(By.id("issue-comment-add-submit"));
+		//waitForElement(By.id("footer-comment-button"));
+
+		auditLog.logAllEntries();
+
+		// Check the log contains a User Mention
+		assertTrue(auditLog.getLastLogEntry().contains("User Mention"));
+
+		// Check the log contains the from and to users
+		assertTrue(auditLog.getLastLogEntry().contains("from:admin(admin),to:[admin(admin)]"));
+
+		// Check the log contains the message itself
+		assertTrue(auditLog.getLastLogEntry().contains("msg:test comment with message for [~admin]"));
 
 
 

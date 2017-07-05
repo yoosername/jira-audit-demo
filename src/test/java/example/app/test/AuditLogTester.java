@@ -1,4 +1,4 @@
-package example.app;
+package example.app.test;
 
 import java.io.File;
 import java.io.FileWriter;

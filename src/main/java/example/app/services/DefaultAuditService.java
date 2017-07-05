@@ -1,4 +1,4 @@
-package example.app.service;
+package example.app.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +8,8 @@ import javax.inject.Named;
 import org.apache.log4j.Logger;
 
 import com.atlassian.plugin.spring.scanner.annotation.export.ExportAsService;
+
+import example.app.models.AuditableEvent;
 
 @ExportAsService({AuditService.class})
 @Named("AuditService")

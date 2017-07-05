@@ -1,6 +1,8 @@
-package example.app.service;
+package example.app.services;
 
 import java.util.List;
+
+import example.app.models.AuditableEvent;
 
 public interface AuditService {
 

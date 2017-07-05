@@ -28,8 +28,8 @@ import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.web.bean.PagerFilter;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 
-import example.app.service.AuditService;
-import example.app.service.AuditableEvent;
+import example.app.models.AuditableEvent;
+import example.app.services.AuditService;
 
 public class AuditFilter implements Filter {
 

@@ -1,4 +1,4 @@
-package example.app.listeners;
+package example.app.events;
 
 import java.util.Date;
 
@@ -8,8 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +20,10 @@ import com.atlassian.jira.event.JiraEvent;
 import com.atlassian.jira.event.ProjectCreatedEvent;
 import com.atlassian.jira.event.ProjectDeletedEvent;
 import com.atlassian.jira.event.ProjectUpdatedEvent;
-import com.atlassian.jira.event.issue.MentionIssueCommentEvent;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.issue.IssueSearchEvent;
 import com.atlassian.jira.event.issue.IssueViewEvent;
+import com.atlassian.jira.event.issue.MentionIssueCommentEvent;
 import com.atlassian.jira.event.issue.QuickBrowseEvent;
 import com.atlassian.jira.event.issue.QuickSearchEvent;
 import com.atlassian.jira.event.type.EventType;
@@ -36,16 +34,15 @@ import com.atlassian.jira.security.JiraAuthenticationContext;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.web.HttpServletVariables;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
-import com.atlassian.sal.api.lifecycle.LifecycleAware;
 
-import example.app.service.AuditService;
-import example.app.service.AuditableEvent;
+import example.app.models.AuditableEvent;
+import example.app.services.AuditService;
 
 /**
  * Simple JIRA listener using the atlassian-event library
  */
 @Component
-public class AllEventsListener implements LifecycleAware, InitializingBean, DisposableBean {
+public class AllEventsListener {
 
 	private static final Logger log = LoggerFactory.getLogger(AllEventsListener.class);
 
@@ -63,11 +60,11 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	 */
 	@Autowired
 	public AllEventsListener(
-		@ComponentImport EventPublisher eventPublisher, 
-		AuditService auditService,
-		@ComponentImport EventTypeManager eventTypeManager,
-		@ComponentImport HttpServletVariables servletVars
-	) 
+			@ComponentImport EventPublisher eventPublisher, 
+			AuditService auditService,
+			@ComponentImport EventTypeManager eventTypeManager,
+			@ComponentImport HttpServletVariables servletVars
+			) 
 	{
 		this.eventPublisher = eventPublisher;
 		this.auditService = auditService;
@@ -79,9 +76,8 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	 * Called when the plugin has been enabled.
 	 * @throws Exception
 	 */
-	@Override
 	@PostConstruct
-	public void afterPropertiesSet() throws Exception {
+	public void onPluginEnabled() throws Exception {
 		// register ourselves with the EventPublisher
 		log.debug("=======================     AUDIT PLUGIN ENABLED     ========================");
 		eventPublisher.register(this);
@@ -91,9 +87,8 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	 * Called when the plugin is being disabled or removed.
 	 * @throws Exception
 	 */
-	@Override
 	@PreDestroy
-	public void destroy() throws Exception {
+	public void onPluginDisabled() throws Exception {
 		// unregister ourselves with the EventPublisher
 		eventPublisher.unregister(this);
 		log.debug("=======================     AUDIT PLUGIN DISABLED     ========================");
@@ -110,29 +105,29 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	// PARTIALLY DONE: Add Issue workflow events. = currently issue event with source = workflow
 	// DONE: Add JQL Search Events
 	// TODO: Add User modification events
-	
+
 
 	private String getCurrentUri(){
 		HttpServletRequest req = servletVars.getHttpRequest();
-	    return req.getRequestURI();
+		return req.getRequestURI();
 	}
-	
+
 	private String getCurrentReferer(){
 		HttpServletRequest req = servletVars.getHttpRequest();
-	    return (req.getHeader("referer")!=null)?req.getHeader("referer"):"";
+		return (req.getHeader("referer")!=null)?req.getHeader("referer"):"";
 	}
-		
+
 	@EventListener
 	// For testing - show us all the different events when they fire
 	public void onJiraEvent(JiraEvent event) {
 		log.debug("got JIRA event {}", event);
 	}
-	
+
 	private String getCurrentUserId(){
 		JiraAuthenticationContext context = ComponentAccessor.getJiraAuthenticationContext();
 		ApplicationUser user = context.getLoggedInUser();
 		String userId = (user != null) ? user.getUsername() : "unknown";
-	    return userId;
+		return userId;
 	}
 
 
@@ -144,9 +139,9 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	public void onExportEvent(MentionIssueCommentEvent mentionIssueCommentEvent) {
 
 		Date timestamp = new Date();
-		
+
 		auditService.handleEvent(
-			new AuditableEvent()
+				new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(mentionIssueCommentEvent.getFromUser().getUsername())
@@ -157,10 +152,10 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
-		);
+				);
 
 	}
-	
+
 	/**
 	 * Receives any {@code ExportEvent}s sent by JIRA.
 	 * @param exportEvent the ExportEvent passed to us
@@ -170,9 +165,9 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 
 		Date timestamp = exportEvent.getTime();
 		String name = exportEvent.calculateEventName();
-		
+
 		auditService.handleEvent(
-			new AuditableEvent()
+				new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUserId())
@@ -183,10 +178,10 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
-		);
+				);
 
 	}
-	
+
 	/**
 	 * Receives any {@code IssueViewEvent}s sent by JIRA.
 	 * @param IssueViewEvent the IssueViewEvent passed to us
@@ -195,9 +190,9 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	public void onQuickBrowseEvent(QuickBrowseEvent quickBrowseEvent) {
 
 		Date timestamp = quickBrowseEvent.getTime();
-		
+
 		auditService.handleEvent(
-			new AuditableEvent()
+				new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUserId())
@@ -208,10 +203,10 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
-		);
+				);
 
 	}
-	
+
 	/**
 	 * Receives any {@code QuickSearchEvent}s sent by JIRA.
 	 * @param quickSearchEvent the QuickSearchEvent passed to us
@@ -220,9 +215,9 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 	public void onQuickSearchEvent(QuickSearchEvent quickSearchEvent) {
 
 		Date timestamp = quickSearchEvent.getTime();
-		
+
 		auditService.handleEvent(
-			new AuditableEvent()
+				new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUserId())
@@ -233,10 +228,10 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
-		);
+				);
 
 	}
-	
+
 	/**
 	 * Receives any {@code IssueSearchEvent}s sent by JIRA.
 	 * @param issueSearchEvent the IssueSearchEvent passed to us
@@ -246,9 +241,9 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 
 		String type = issueSearchEvent.getType();
 		Date timestamp = issueSearchEvent.getTime();
-		
+
 		auditService.handleEvent(
-			new AuditableEvent()
+				new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUserId())
@@ -259,10 +254,10 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
-		);
+				);
 
 	}
-	
+
 	/**
 	 * Receives any {@code IssueViewEvent}s sent by JIRA.
 	 * @param IssueViewEvent the IssueViewEvent passed to us
@@ -273,9 +268,9 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		Long eventTypeId = issueViewEvent.getId();
 		EventType type = eventTypeManager.getEventType(eventTypeId);
 		Date timestamp = issueViewEvent.getTime();
-		
+
 		auditService.handleEvent(
-			new AuditableEvent()
+				new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUserId())
@@ -286,10 +281,10 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
-		);
+				);
 
 	}
-	
+
 	/**
 	 * Receives any {@code DashboardViewEvent}s sent by JIRA.
 	 * @param dashboardViewEvent the DashboardViewEvent passed to us
@@ -301,7 +296,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		Date timestamp = dashboardViewEvent.getTime();
 
 		auditService.handleEvent(
-			new AuditableEvent()
+				new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(getCurrentUserId())	
@@ -312,10 +307,10 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction(false)
 				.at(timestamp)
-		);
+				);
 
 	}
-	
+
 	/**
 	 * Receives any {@code IssueEvent}s sent by JIRA.
 	 * @param issueEvent the IssueEvent passed to us
@@ -334,7 +329,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 		}catch(Exception e){}
 
 		auditService.handleEvent(
-			new AuditableEvent()
+				new AuditableEvent()
 				.withReferer(getCurrentReferer())
 				.withUrl(getCurrentUri())
 				.withUserId(user.getUsername())
@@ -345,7 +340,7 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 				.withIsAdminOnly(false)
 				.withIsDestructiveAction((typeName.equals("Issue Deleted")?true:false))
 				.at(timestamp)
-		);
+				);
 
 	}
 
@@ -478,26 +473,6 @@ public class AllEventsListener implements LifecycleAware, InitializingBean, Disp
 				.withIsDestructiveAction(false)
 				.at(timestamp)
 				);
-	}
-
-	/**
-	 * When this plugin is enabled register our event handlers
-	 */
-	@Override
-	public void onStart() {
-		// register ourselves with the EventPublisher
-		eventPublisher.register(this);
-		log.debug("****PLUGIN ENABLED*******");
-	}
-
-	/**
-	 * When this plugin is disabled unregister our event handlers
-	 */
-	@Override
-	public void onStop() {
-		// unregister ourselves with the EventPublisher
-		eventPublisher.unregister(this);
-		log.debug("****PLUGIN DISABLED*******");
 	}
 
 }

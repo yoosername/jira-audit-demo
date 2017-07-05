@@ -1,4 +1,4 @@
-package example.app.service;
+package example.app.models;
 
 import java.util.Date;
 import java.util.HashMap;

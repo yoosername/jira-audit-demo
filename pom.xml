@@ -177,7 +177,7 @@
 
 						<!-- Add package to export here -->
 						<Export-Package>
-							example.app*,
+							example.app.*,
 						</Export-Package>
 
 						<!-- Add package import here -->
